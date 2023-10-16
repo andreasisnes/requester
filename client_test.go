@@ -75,7 +75,7 @@ func TestRequest(t *testing.T) {
 		assert.Empty(t, actual.Scheme)
 	})
 	t.Run("Context nil return error", func(t *testing.T) {
-		actual := New().Request(nil, http.MethodGet)
+		actual := New().Request(context.Background(), http.MethodGet)
 		assert.Error(t, actual.Err)
 		assert.Nil(t, actual.Request)
 	})

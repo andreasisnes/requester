@@ -172,12 +172,15 @@ func WithBody(body io.Reader) RequestOption {
 
 func WithBodyXML(object any) RequestOption {
 	return func(request *Request) error {
-		result, err := xml.MarshalIndent(object, "", "  ")
+		body, err := xml.MarshalIndent(object, "", "  ")
 		if err != nil {
 			return err
 		}
 
-		WithBody(bytes.NewReader(result))(request)
+		if err = WithBody(bytes.NewReader(body))(request); err != nil {
+			return err
+		}
+
 		request.Header.Add("Content-Type", "application/xml")
 		return nil
 	}
@@ -185,12 +188,15 @@ func WithBodyXML(object any) RequestOption {
 
 func WithBodyJSON(object any) RequestOption {
 	return func(request *Request) error {
-		result, err := json.Marshal(object)
+		body, err := json.Marshal(object)
 		if err != nil {
 			return err
 		}
 
-		WithBody(bytes.NewReader(result))(request)
+		if err = WithBody(bytes.NewReader(body))(request); err != nil {
+			return err
+		}
+
 		request.Header.Add("Content-Type", "application/json")
 		return nil
 	}
@@ -205,7 +211,10 @@ func WithBodyFormURLEncoded(form map[string][]string) RequestOption {
 			}
 		}
 
-		WithBody(strings.NewReader(formValues.Encode()))(request)
+		if err := WithBody(strings.NewReader(formValues.Encode()))(request); err != nil {
+			return err
+		}
+
 		request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 		return nil
 	}
@@ -225,7 +234,10 @@ func WithBodyFormData(form map[string][]byte) RequestOption {
 		}
 
 		mWriter.Close()
-		WithBody(&body)(request)
+		if err := WithBody(&body)(request); err != nil {
+			return err
+		}
+
 		request.Header.Add("Content-Type", mWriter.FormDataContentType())
 		return nil
 	}
