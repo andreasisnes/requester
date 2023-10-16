@@ -75,7 +75,7 @@ func WithBodyUnmarshal[T any](object *T, unmarshaler func(data []byte, v any) er
 		}()
 
 		for _, code := range statuscodes {
-			if code == code {
+			if response.StatusCode == code {
 				if object == nil {
 					object = new(T)
 				}

@@ -74,8 +74,8 @@ func TestRequest(t *testing.T) {
 		actual := New().Request(context.Background(), http.MethodGet, "#").URL
 		assert.Empty(t, actual.Scheme)
 	})
-	t.Run("Context nil return error", func(t *testing.T) {
-		actual := New().Request(context.Background(), http.MethodGet)
+	t.Run("Unknown HTTP verb return error", func(t *testing.T) {
+		actual := New().Request(context.Background(), "INVALID HTTP VERB")
 		assert.Error(t, actual.Err)
 		assert.Nil(t, actual.Request)
 	})

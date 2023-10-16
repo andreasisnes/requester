@@ -146,6 +146,7 @@ func TestWithBodyFormData(t *testing.T) {
 		"test": []byte("123"),
 	}))
 
+	assert.NoError(t, err)
 	mediatype, param, err := mime.ParseMediaType(request.Header.Get("Content-Type"))
 	assert.NoError(t, err)
 	reader := multipart.NewReader(request.Body, param["boundary"])

@@ -230,7 +230,9 @@ func WithBodyFormData(form map[string][]byte) RequestOption {
 				return err
 			}
 
-			writer.Write(value)
+			if _, err = writer.Write(value); err != nil {
+				return err
+			}
 		}
 
 		mWriter.Close()
