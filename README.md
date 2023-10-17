@@ -1,4 +1,4 @@
-![coverage](https://raw.githubusercontent.com/andreasisnes/requester/badges/.badges/main/coverage.svg)
+![coverage](https://raw.githubusercontent.com/andreasisnes/requester/badges/.badges/coverage.svg)
 
 # Requester
 Reqester is a Go package that provides a wrapper around the standard HTTP package, utilizing the function options pattern for handling requests and responses. It offers additional features for handling HTTP requests, including retries, fallback policies, and more.
