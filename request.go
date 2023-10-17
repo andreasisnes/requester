@@ -31,6 +31,7 @@ type Request struct {
 	*http.Client
 	Err                 error
 	Retries             int
+	FallbackDuration    time.Duration
 	FallbackPolicy      FallbackPolicy
 	FallbackStatusCodes []int
 }
@@ -71,9 +72,9 @@ func (r *Request) sender(attempt int, response *http.Response, errs []error) (*h
 
 		switch r.FallbackPolicy {
 		case FallbackPolicyExponential:
-			r.wait(time.Second * (time.Duration(attempt * attempt)))
+			r.wait(r.FallbackDuration * (time.Duration(attempt * attempt)))
 		default:
-			r.wait(time.Second * time.Duration(attempt))
+			r.wait(r.FallbackDuration * time.Duration(attempt))
 		}
 	}
 
@@ -93,12 +94,16 @@ func (r *Request) sender(attempt int, response *http.Response, errs []error) (*h
 }
 
 func (r *Request) wait(duration time.Duration) {
+	if duration == 0 {
+		return
+	}
+
 	ctx, ctxFunc := context.WithTimeout(r.Context(), duration)
 	defer ctxFunc()
 	<-ctx.Done()
 }
 
-func WithRetryPolicy(retries int, policy FallbackPolicy, statuscodes ...int) RequestOption {
+func WithRetryPolicy(retries int, duration time.Duration, policy FallbackPolicy, statuscodes ...int) RequestOption {
 	return func(request *Request) (err error) {
 		if retries < 0 {
 			retries = 0
@@ -107,8 +112,10 @@ func WithRetryPolicy(retries int, policy FallbackPolicy, statuscodes ...int) Req
 		}
 
 		request.Retries = retries
+		request.FallbackDuration = duration
 		request.FallbackPolicy = policy
 		request.FallbackStatusCodes = statuscodes
+
 		return nil
 	}
 }

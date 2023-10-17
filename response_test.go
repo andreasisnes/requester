@@ -28,13 +28,13 @@ func MoqResponse(opts ...func(response *Response)) *Response {
 }
 
 func TestWithStatusCodeAssertion(t *testing.T) {
-	t.Run("1", func(t *testing.T) {
+	t.Run("response and asserted HTTP code match", func(t *testing.T) {
 		assert.NoError(t, MoqResponse().Handle(WithStatusCodeAssertion(http.StatusOK)))
 	})
-	t.Run("2", func(t *testing.T) {
+	t.Run("empty body. response and asserted HTTP code mismatch", func(t *testing.T) {
 		assert.Equal(t, MoqResponse().Handle(WithStatusCodeAssertion(http.StatusCreated)).Error(), "expected status code(s) '[201]', received '200'")
 	})
-	t.Run("3", func(t *testing.T) {
+	t.Run("non-empty body. response and asserted HTTP code mismatch ", func(t *testing.T) {
 		assert.Equal(t, MoqResponse(func(response *Response) {
 			response.Body = io.NopCloser(strings.NewReader("this is an error"))
 		}).Handle(WithStatusCodeAssertion(http.StatusCreated)).Error(), "this is an error")
@@ -46,7 +46,7 @@ func TestWithUnmarshalJSON(t *testing.T) {
 		Status string `json:","`
 	}
 
-	t.Run("1", func(t *testing.T) {
+	t.Run("body is JSON deserialized to given object", func(t *testing.T) {
 		resultOK := &testOK{}
 		err := MoqResponse(func(response *Response) {
 			body, _ := json.Marshal(&testOK{Status: "ok"})
@@ -69,7 +69,7 @@ func TestWithUnmarshalXML(t *testing.T) {
 		Origin  []string `xml:"origin"`
 	}
 
-	t.Run("1", func(t *testing.T) {
+	t.Run("body is XML deserialized to given object", func(t *testing.T) {
 		resultOK := &testOK{}
 		err := MoqResponse(func(response *Response) {
 			body, _ := xml.Marshal(&testOK{Id: 2, Name: "github"})

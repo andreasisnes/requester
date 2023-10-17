@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
-	"strings"
 )
 
 type Client struct {
@@ -84,8 +83,10 @@ func (c *Client) PATCH(ctx context.Context, route ...string) *Request {
 // segments will be joined with / as seperator.
 func (c *Client) Request(ctx context.Context, method string, routes ...string) *Request {
 	uri, err := func() (string, error) {
-		if c.url == "" {
-			return strings.Join(routes, "/"), nil
+		if c.url == "" && len(routes) > 1 {
+			return url.JoinPath(routes[0], routes[1:]...)
+		} else if c.url == "" && len(routes) > 0 {
+			return routes[0], nil
 		}
 
 		return url.JoinPath(c.url, routes...)
