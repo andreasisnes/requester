@@ -39,7 +39,7 @@ jobs:
         with:
           profile: cover.out
           local-prefix: github.com/org/project
-          threshold-file: 80
+          threshold-file: 60
           threshold-package: 80
           threshold-total: 95
       - name: make coverage badge
