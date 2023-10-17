@@ -4,6 +4,9 @@ on:
       - main
   pull_request:
 
+env:
+  GO_VERSION: 1.21
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -11,24 +14,56 @@ jobs:
       - name: Install GO
         uses: actions/setup-go@v4
         with:
-          go-version: 1.21
+          go-version: ${{ env.GO_VERSION }}
       - name: Checkout Repository
         uses: actions/checkout@v4
       - name: Run Linters
         uses: golangci/golangci-lint-action@v3
         with:
           version: v1.54
-  test:
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install GO
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Run Tests
+        run: go test ./... -coverprofile=./cover.out
+      - name: Check Test Coverage
+        id: coverage
+        uses: vladopajic/go-test-coverage@v2
+        with:
+          profile: cover.out
+          local-prefix: github.com/org/project
+          threshold-file: 80
+          threshold-package: 80
+          threshold-total: 95
+      - name: make coverage badge
+        uses: action-badges/core@0.2.2
+        if: contains(github.ref, 'main')
+        with:
+          label: coverage
+          message: ${{ steps.coverage.outputs.badge-text }}
+          message-color: ${{ steps.coverage.outputs.badge-color }}
+          file-name: coverage.svg
+          badge-branch: badges
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+  compatibility:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-version: [ '1.20', '1.21' ]
+        go-version: [ '1.20']
     steps:
       - name: Install GO
         uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
-      - name: Checkout RepoQsitory
+      - name: Checkout Repository
         uses: actions/checkout@v4
       - name: Install dependencies
         run: go get .
