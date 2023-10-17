@@ -40,13 +40,13 @@ jobs:
         uses: vladopajic/go-test-coverage@v2
         with:
           profile: cover.out
-          local-prefix: github.com/org/project
+          local-prefix: github.com/andreasisnes/requester
           threshold-file: 60
           threshold-package: 60
           threshold-total: 70
       - name: make coverage badge
         uses: action-badges/core@0.2.2
-        if: contains(github.ref, 'main')
+        # if: contains(github.ref, 'main')
         with:
           label: coverage
           message: ${{ steps.coverage.outputs.badge-text }}
