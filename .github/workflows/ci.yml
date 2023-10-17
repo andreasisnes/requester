@@ -24,6 +24,7 @@ jobs:
 
   coverage:
     runs-on: ubuntu-latest
+    permissions: write-all
     steps:
       - name: Install GO
         uses: actions/setup-go@v4
