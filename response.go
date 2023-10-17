@@ -1,4 +1,4 @@
-package rejester
+package requester
 
 import (
 	"bytes"
@@ -10,13 +10,17 @@ import (
 	"net/http"
 )
 
+// ResponseOption is a callback signature for modifying response options.
 type ResponseOption func(request *Response) error
 
+// Response is a wrapper around the standard http.Response providing additional features.
 type Response struct {
 	*http.Response
 	Err error
 }
 
+// Handle executes the response handling options.
+// If there is an error associated with the response, it returns that error.
 func (r *Response) Handle(opts ...ResponseOption) error {
 	if r.Err != nil {
 		return r.Err
@@ -30,6 +34,8 @@ func (r *Response) Handle(opts ...ResponseOption) error {
 	return err
 }
 
+// WithStatusCodeAssertion checks if the response status code matches any of the specified codes.
+// If it does, it returns nil. Otherwise, it provides an error message.
 func WithStatusCodeAssertion(statusCodes ...int) ResponseOption {
 	return func(response *Response) error {
 		for _, code := range statusCodes {
@@ -54,18 +60,30 @@ func WithStatusCodeAssertion(statusCodes ...int) ResponseOption {
 	}
 }
 
+// WithUnmarshalJSON unmarshals the JSON response body to an object.
+// The object parameter should be a pointer to the target type. It will
+// only attempt to deserialize the payload if the response has one of the provided status codes.
+// If the list of status codes is empty, it will attempt to deserialize for all status codes.
 func WithUnmarshalJSON[T any](object *T, statuscodes ...int) ResponseOption {
 	return func(response *Response) error {
 		return WithBodyUnmarshal(object, json.Unmarshal, statuscodes...)(response)
 	}
 }
 
+// WithUnmarshalXML unmarshals the XML response body to an object.
+// The object parameter should be a pointer to the target type. It will
+// only attempt to deserialize the payload if the response has one of the provided status codes.
+// If the list of status codes is empty, it will attempt to deserialize for all status codes.
 func WithUnmarshalXML[T any](object *T, statuscodes ...int) ResponseOption {
 	return func(response *Response) error {
 		return WithBodyUnmarshal(object, xml.Unmarshal, statuscodes...)(response)
 	}
 }
 
+// WithUnmarshalXML unmarshals the response body to an object using the given unmarshaler.
+// The object parameter should be a pointer to the target type. It will
+// only attempt to deserialize the payload if the response has one of the provided status codes.
+// If the list of status codes is empty, it will attempt to deserialize for all status codes.
 func WithBodyUnmarshal[T any](object *T, unmarshaler func(data []byte, v any) error, statuscodes ...int) ResponseOption {
 	return func(response *Response) (err error) {
 		defer func() {
@@ -74,24 +92,34 @@ func WithBodyUnmarshal[T any](object *T, unmarshaler func(data []byte, v any) er
 			}
 		}()
 
+		deserialize := func() error {
+			if object == nil {
+				object = new(T)
+			}
+
+			if response.Body != nil {
+				body, err := io.ReadAll(response.Body)
+				if err != nil {
+					return err
+				}
+
+				response.Body = io.NopCloser(bytes.NewBuffer(body))
+				return unmarshaler(body, object)
+			}
+
+			return nil
+		}
+
+		if len(statuscodes) == 0 {
+			return deserialize()
+		}
+
 		for _, code := range statuscodes {
 			if response.StatusCode == code {
-				if object == nil {
-					object = new(T)
-				}
-
-				if response.Body != nil {
-					body, err := io.ReadAll(response.Body)
-					if err != nil {
-						return err
-					}
-
-					response.Body = io.NopCloser(bytes.NewBuffer(body))
-					return unmarshaler(body, object)
-				}
+				return deserialize()
 			}
 		}
 
-		return err
+		return nil
 	}
 }

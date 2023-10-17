@@ -1,4 +1,4 @@
-package rejester
+package requester
 
 import (
 	"context"
@@ -76,7 +76,7 @@ func TestRequest(t *testing.T) {
 	})
 	t.Run("Unknown HTTP verb return error", func(t *testing.T) {
 		actual := New().Request(context.Background(), "INVALID HTTP VERB")
-		assert.Error(t, actual.Err)
+		assert.Error(t, actual.Error)
 		assert.Nil(t, actual.Request)
 	})
 }

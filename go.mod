@@ -1,4 +1,4 @@
-module github.com/andreasisnes/rejester
+module github.com/andreasisnes/requester
 
 go 1.21
 
