@@ -79,10 +79,10 @@ func PrintJSON(response Response) {
 	fmt.Println(string(jsonBytes))
 }
 
-func (sdk *EchoServer) GET(ctx context.Context, query map[string][]any) (out Response, err error) {
-	return out, sdk.client.GET(ctx, "get").
+func (echo *EchoServer) GET(ctx context.Context, query map[string][]any) (out Response, err error) {
+	return out, echo.client.GET(ctx, "get").
 		Do(
-			sdk.WithDefaultRequestOptions,
+			echo.WithDefaultRequestOptions,
 			requester.WithRequestURLQuery(query),
 			func(request *requester.Request) (err error) {
 				request.Header.Add("X-Header", "1337")
@@ -95,10 +95,10 @@ func (sdk *EchoServer) GET(ctx context.Context, query map[string][]any) (out Res
 		)
 }
 
-func (sdk *EchoServer) POST(ctx context.Context, payload map[string]any) (out Response, err error) {
-	return out, sdk.client.POST(ctx, "post").
+func (echo *EchoServer) POST(ctx context.Context, payload map[string]any) (out Response, err error) {
+	return out, echo.client.POST(ctx, "post").
 		Do(
-			sdk.WithDefaultRequestOptions,
+			echo.WithDefaultRequestOptions,
 			requester.WithRequestJSON(payload),
 		).
 		Handle(
@@ -107,7 +107,7 @@ func (sdk *EchoServer) POST(ctx context.Context, payload map[string]any) (out Re
 		)
 }
 
-func (sdk *EchoServer) WithDefaultRequestOptions(request *requester.Request) error {
+func (echo *EchoServer) WithDefaultRequestOptions(request *requester.Request) error {
 	return requester.WithRequestOptions(
 		requester.WithRequestAuthorizationBasic("username", "password"),
 		requester.WithRequestTimeout(time.Second),
