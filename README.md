@@ -1,5 +1,6 @@
 <div align="center">
 
+[![.github/workflows/ci.yml](https://github.com/andreasisnes/requester/actions/workflows/ci.yml/badge.svg)](https://github.com/andreasisnes/requester/actions/workflows/ci.yml)
 ![coverage](https://raw.githubusercontent.com/andreasisnes/requester/badges/.badges/coverage.svg)
 ![GitHub](https://img.shields.io/github/license/andreasisnes/requester)
 [![Go Report Card](https://goreportcard.com/badge/github.com/andreasisnes/requester)](https://goreportcard.com/report/github.com/andreasisnes/requester)
