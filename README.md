@@ -1,8 +1,10 @@
 <div align="center">
+
 ![coverage](https://raw.githubusercontent.com/andreasisnes/requester/badges/.badges/coverage.svg)
 ![GitHub](https://img.shields.io/github/license/andreasisnes/requester)
 [![Go Report Card](https://goreportcard.com/badge/github.com/andreasisnes/requester)](https://goreportcard.com/report/github.com/andreasisnes/requester)
 [![GoDoc](https://godoc.org/github.com/andreasisnes/requester?status.svg)](https://godoc.org/github.com/andreasisnes/requester)
+
 </div>
 
 # Requester
