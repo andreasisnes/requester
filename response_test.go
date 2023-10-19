@@ -27,21 +27,21 @@ func MoqResponse(opts ...func(response *Response)) *Response {
 	return response
 }
 
-func TestWithStatusCodeAssertion(t *testing.T) {
+func TestWithResponseStatusCodeAssertion(t *testing.T) {
 	t.Run("response and asserted HTTP code match", func(t *testing.T) {
-		assert.NoError(t, MoqResponse().Handle(WithStatusCodeAssertion(http.StatusOK)))
+		assert.NoError(t, MoqResponse().Handle(WithResponseStatusCodeAssertion(http.StatusOK)))
 	})
 	t.Run("empty body. response and asserted HTTP code mismatch", func(t *testing.T) {
-		assert.Equal(t, MoqResponse().Handle(WithStatusCodeAssertion(http.StatusCreated)).Error(), "expected status code(s) '[201]', received '200'")
+		assert.Equal(t, MoqResponse().Handle(WithResponseStatusCodeAssertion(http.StatusCreated)).Error(), "expected status code(s) '[201]', received '200'")
 	})
 	t.Run("non-empty body. response and asserted HTTP code mismatch ", func(t *testing.T) {
 		assert.Equal(t, MoqResponse(func(response *Response) {
 			response.Body = io.NopCloser(strings.NewReader("this is an error"))
-		}).Handle(WithStatusCodeAssertion(http.StatusCreated)).Error(), "this is an error")
+		}).Handle(WithResponseStatusCodeAssertion(http.StatusCreated)).Error(), "this is an error")
 	})
 }
 
-func TestWithUnmarshalJSON(t *testing.T) {
+func TestWithResponseJSON(t *testing.T) {
 	type testOK struct {
 		Status string `json:","`
 	}
@@ -52,16 +52,28 @@ func TestWithUnmarshalJSON(t *testing.T) {
 			body, _ := json.Marshal(&testOK{Status: "ok"})
 			response.Body = io.NopCloser(bytes.NewReader(body))
 		}).Handle(
-			WithUnmarshalJSON(resultOK, http.StatusOK),
-			WithUnmarshalJSON(resultOK, http.StatusInternalServerError),
+			WithResponseJSON(resultOK, http.StatusOK),
+			WithResponseJSON(resultOK, http.StatusInternalServerError),
 		)
 
 		assert.NoError(t, err)
 		assert.Equal(t, "ok", resultOK.Status)
 	})
+
+	t.Run("body is JSON deserialized to nil", func(t *testing.T) {
+		var resultOK *testOK
+		err := MoqResponse(func(response *Response) {
+			body, _ := json.Marshal(&testOK{Status: "ok"})
+			response.Body = io.NopCloser(bytes.NewReader(body))
+		}).Handle(
+			WithResponseJSON(resultOK),
+		)
+
+		assert.Error(t, err)
+	})
 }
 
-func TestWithUnmarshalXML(t *testing.T) {
+func TestWithResponseXML(t *testing.T) {
 	type testOK struct {
 		XMLName xml.Name `xml:"test"`
 		Id      int      `xml:"id,attr"`
@@ -75,7 +87,7 @@ func TestWithUnmarshalXML(t *testing.T) {
 			body, _ := xml.Marshal(&testOK{Id: 2, Name: "github"})
 			response.Body = io.NopCloser(bytes.NewReader(body))
 		}).Handle(
-			WithUnmarshalXML(resultOK, http.StatusOK),
+			WithResponseXML(resultOK, http.StatusOK),
 		)
 
 		assert.NoError(t, err)
