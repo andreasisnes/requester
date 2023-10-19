@@ -9,13 +9,19 @@
 </div>
 
 # Requester
-Reqester is a Go package that provides a wrapper around the standard HTTP package, utilizing the function options pattern for handling requests and responses. It offers additional features for handling HTTP requests, including retries, fallback policies, and more.
+Requester is a Go package that provides a wrapper around the standard HTTP package, utilizing the function options pattern for handling requests and responses. It offers additional features for handling HTTP requests, including retries, fallback policies, and more.
 
 In the realm of HTTP client libraries for Go, developers often find themselves working with the standard HTTP client, request, and response pattern. While effective, this pattern can become verbose, especially when dealing with error handling and mutating requests.
 
 Many projects and libraries in the Go ecosystem follow the builder pattern, which can provide a cleaner and more fluent API for constructing requests. However, the builder pattern can sometimes be challenging to extend with additional functionality.
 
 In contrast, the functional pattern offers a flexible and composable approach to working with HTTP requests. This pattern aligns well with Go's idiomatic style, allowing developers to easily apply modifications and customizations to requests through functional options.
+
+## Components
+This package extends the functionality of the standard http package by incorporating and enhancing its core components: the Client, Request, and Response objects. It introduces additional fields, methods, and object compositions, augmenting the capabilities provided by the standard HTTP package.
+
+Errors are propagated through the client initialization, request construction, sending, and handling. If any errors occur along this process, subsequent steps will not execute the provided callbacks. Therefore you omit checking the errors for each stage. See the usage section below.
+
 
 ## Installation
 ```bash
@@ -137,3 +143,7 @@ The second request POST will write the following to stdout.
   "url": "https://postman-echo.com/post"
 }
 ```
+
+# Contributing
+If you want to contribute to requestor, feel free to open an [issue](https://github.com/andreasisnes/requester/issues) or submit a [pull request](https://github.com/andreasisnes/requester/pulls).
+
