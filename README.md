@@ -1,7 +1,7 @@
 <div align="center">
 
 [![Pipeline](https://github.com/andreasisnes/requester/actions/workflows/pipeline.yml/badge.svg)](https://github.com/andreasisnes/requester/actions/workflows/pipeline.yml)
-![coverage](https://raw.githubusercontent.com/andreasisnes/requester/badges/.badges/coverage.svg)
+![coverage](https://raw.githubusercontent.com/andreasisnes/requester/badges/.badges/main/coverage.svg)
 ![GitHub](https://img.shields.io/github/license/andreasisnes/requester)
 [![Go Report Card](https://goreportcard.com/badge/github.com/andreasisnes/requester)](https://goreportcard.com/report/github.com/andreasisnes/requester)
 [![GoDoc](https://godoc.org/github.com/andreasisnes/requester?status.svg)](https://godoc.org/github.com/andreasisnes/requester)
