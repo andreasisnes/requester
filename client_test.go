@@ -62,11 +62,11 @@ func TestPATCH(t *testing.T) {
 }
 
 func TestRequest(t *testing.T) {
-	t.Run("URL base and routes is concatinated", func(t *testing.T) {
+	t.Run("URL base and routes is concatenated", func(t *testing.T) {
 		actual := New(WithBaseURL(testURL)).Request(context.Background(), http.MethodGet, "1", "2")
 		assert.Equal(t, fmt.Sprintf("%s/%s/%s", testURL, "1", "2"), actual.URL.String())
 	})
-	t.Run("URL routes is concatinated", func(t *testing.T) {
+	t.Run("URL routes is concatenated", func(t *testing.T) {
 		actual := New().Request(context.Background(), http.MethodGet, testURL, "1", "2")
 		assert.Equal(t, fmt.Sprintf("%s/%s/%s", testURL, "1", "2"), actual.URL.String())
 	})

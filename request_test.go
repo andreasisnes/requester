@@ -17,7 +17,7 @@ import (
 )
 
 func TestDo(t *testing.T) {
-	t.Run("acutally sends the request", func(t *testing.T) {
+	t.Run("actually sends the request", func(t *testing.T) {
 		response := New(WithBaseURL("https://google.com")).
 			GET(context.Background()).
 			Do()
