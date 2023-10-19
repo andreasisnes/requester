@@ -37,6 +37,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/andreasisnes/requester"
@@ -81,6 +82,7 @@ func PrintJSON(response Response) {
 func (sdk *EchoServer) GET(ctx context.Context, query map[string][]any) (out Response, err error) {
 	return out, sdk.client.GET(ctx, "get").
 		Do(
+			sdk.WithDefaultRequestOptions,
 			requester.WithRequestURLQuery(query),
 			func(request *requester.Request) (err error) {
 				request.Header.Add("X-Header", "1337")
@@ -88,22 +90,30 @@ func (sdk *EchoServer) GET(ctx context.Context, query map[string][]any) (out Res
 			},
 		).
 		Handle(
-			requester.WithResponseJSON(&out),
+			requester.WithResponseStatusCodeAssertion(http.StatusOK),
+			requester.WithResponseJSON(&out, http.StatusOK),
 		)
 }
 
 func (sdk *EchoServer) POST(ctx context.Context, payload map[string]any) (out Response, err error) {
 	return out, sdk.client.POST(ctx, "post").
 		Do(
+			sdk.WithDefaultRequestOptions,
 			requester.WithRequestJSON(payload),
-			requester.WithRequestHeader("X-Custom", 123),
-			requester.WithRequestAuthorizationBasic("admin", "password"),
 		).
 		Handle(
-			requester.WithResponseJSON(&out),
+			requester.WithResponseStatusCodeAssertion(http.StatusOK),
+			requester.WithResponseJSON(&out, http.StatusOK),
 		)
 }
 
+func (sdk *EchoServer) WithDefaultRequestOptions(request *requester.Request) error {
+	return requester.WithRequestOptions(
+		requester.WithRequestAuthorizationBasic("username", "password"),
+		requester.WithRequestTimeout(time.Second),
+		requester.WithRequestRetryPolicy(3, time.Second, requester.FallbackPolicyExponential),
+	)(request)
+}
 ```
 
 
@@ -111,19 +121,20 @@ The first request GET will write following to stdout.
 ```json
 {
   "args": {
-    "timstamp": "2023-10-19 16:50:11.736282963 +0200 CEST m=+0.000161264"
+    "timstamp": "2023-10-19 17:03:50.688733922 +0200 CEST m=+0.000166782"
   },
   "data": null,
   "headers": {
     "accept-encoding": "gzip",
+    "authorization": "Basic dXNlcm5hbWU6cGFzc3dvcmQ=",
     "host": "postman-echo.com",
     "user-agent": "Go-http-client/2.0",
-    "x-amzn-trace-id": "Root=1-653141f8-67a5c67e22ed992303fe50f4",
+    "x-amzn-trace-id": "Root=1-6531452b-640a2bf95549969230ae35d5",
     "x-forwarded-port": "443",
     "x-forwarded-proto": "https",
     "x-header": "1337"
   },
-  "url": "https://postman-echo.com/get?timstamp=2023-10-19+16%3A50%3A11.736282963+%2B0200+CEST+m%3D%2B0.000161264"
+  "url": "https://postman-echo.com/get?timstamp=2023-10-19+17%3A03%3A50.688733922+%2B0200+CEST+m%3D%2B0.000166782"
 }
 ```
 
@@ -136,13 +147,12 @@ The second request POST will write the following to stdout.
   },
   "headers": {
     "accept-encoding": "gzip",
-    "authorization": "Basic YWRtaW46cGFzc3dvcmQ=",
+    "authorization": "Basic dXNlcm5hbWU6cGFzc3dvcmQ=",
     "content-length": "12",
     "content-type": "application/json",
     "host": "postman-echo.com",
     "user-agent": "Go-http-client/2.0",
-    "x-amzn-trace-id": "Root=1-65310d53-14c9787b400c18fc69ec0f40",
-    "x-custom": "123",
+    "x-amzn-trace-id": "Root=1-6531452b-0d33cc866fa05f4758a9fbfe",
     "x-forwarded-port": "443",
     "x-forwarded-proto": "https"
   },
