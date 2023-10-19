@@ -34,9 +34,9 @@ func (r *Response) Handle(opts ...ResponseOption) error {
 	return err
 }
 
-// WithStatusCodeAssertion checks if the response status code matches any of the specified codes.
+// WithResponseStatusCodeAssertion checks if the response status code matches any of the specified codes.
 // If it does, it returns nil. Otherwise, it provides an error message.
-func WithStatusCodeAssertion(statusCodes ...int) ResponseOption {
+func WithResponseStatusCodeAssertion(statusCodes ...int) ResponseOption {
 	return func(response *Response) error {
 		for _, code := range statusCodes {
 			if code == response.StatusCode {
@@ -60,23 +60,23 @@ func WithStatusCodeAssertion(statusCodes ...int) ResponseOption {
 	}
 }
 
-// WithUnmarshalJSON unmarshals the JSON response body to an object.
+// WithResponseJSON unmarshals the JSON response body to an object.
 // The object parameter should be a pointer to the target type. It will
 // only attempt to deserialize the payload if the response has one of the provided status codes.
 // If the list of status codes is empty, it will attempt to deserialize for all status codes.
-func WithUnmarshalJSON[T any](object *T, statuscodes ...int) ResponseOption {
+func WithResponseJSON[T any](object *T, statuscodes ...int) ResponseOption {
 	return func(response *Response) error {
-		return WithBodyUnmarshal(object, json.Unmarshal, statuscodes...)(response)
+		return WithResponseBody(object, json.Unmarshal, statuscodes...)(response)
 	}
 }
 
-// WithUnmarshalXML unmarshals the XML response body to an object.
+// WithResponseXML unmarshals the XML response body to an object.
 // The object parameter should be a pointer to the target type. It will
 // only attempt to deserialize the payload if the response has one of the provided status codes.
 // If the list of status codes is empty, it will attempt to deserialize for all status codes.
-func WithUnmarshalXML[T any](object *T, statuscodes ...int) ResponseOption {
+func WithResponseXML[T any](object *T, statuscodes ...int) ResponseOption {
 	return func(response *Response) error {
-		return WithBodyUnmarshal(object, xml.Unmarshal, statuscodes...)(response)
+		return WithResponseBody(object, xml.Unmarshal, statuscodes...)(response)
 	}
 }
 
@@ -84,7 +84,7 @@ func WithUnmarshalXML[T any](object *T, statuscodes ...int) ResponseOption {
 // The object parameter should be a pointer to the target type. It will
 // only attempt to deserialize the payload if the response has one of the provided status codes.
 // If the list of status codes is empty, it will attempt to deserialize for all status codes.
-func WithBodyUnmarshal[T any](object *T, unmarshaler func(data []byte, v any) error, statuscodes ...int) ResponseOption {
+func WithResponseBody[T any](object *T, unmarshaler func(data []byte, v any) error, statuscodes ...int) ResponseOption {
 	return func(response *Response) (err error) {
 		defer func() {
 			if p := recover(); p != nil {
@@ -93,10 +93,6 @@ func WithBodyUnmarshal[T any](object *T, unmarshaler func(data []byte, v any) er
 		}()
 
 		deserialize := func() error {
-			if object == nil {
-				object = new(T)
-			}
-
 			if response.Body != nil {
 				body, err := io.ReadAll(response.Body)
 				if err != nil {

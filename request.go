@@ -127,8 +127,8 @@ func (r *Request) wait(duration time.Duration) {
 	<-ctx.Done()
 }
 
-// WithRetryPolicy sets the retry policy for the request.
-func WithRetryPolicy(retries int, duration time.Duration, policy FallbackPolicy, statuscodes ...int) RequestOption {
+// WithRequestRetryPolicy sets the retry policy for the request.
+func WithRequestRetryPolicy(retries int, duration time.Duration, policy FallbackPolicy, statuscodes ...int) RequestOption {
 	return func(request *Request) (err error) {
 		if retries < 0 {
 			retries = 0
@@ -145,8 +145,8 @@ func WithRetryPolicy(retries int, duration time.Duration, policy FallbackPolicy,
 	}
 }
 
-// WithTimeout sets the timeout duration for the request.
-func WithTimeout(duration time.Duration) RequestOption {
+// WithRequestTimeout sets the timeout duration for the request.
+func WithRequestTimeout(duration time.Duration) RequestOption {
 	return func(request *Request) (err error) {
 		request.Timeout = duration
 		return nil
@@ -164,8 +164,8 @@ func WithRequestOptions(opts ...RequestOption) RequestOption {
 	}
 }
 
-// WithURL sets the URL for the request.
-func WithURL(rawUrl string) RequestOption {
+// WithRequestURL sets the URL for the request.
+func WithRequestURL(rawUrl string) RequestOption {
 	return func(request *Request) (err error) {
 		parsedUrl, err := url.Parse(rawUrl)
 		if err != nil {
@@ -177,8 +177,8 @@ func WithURL(rawUrl string) RequestOption {
 	}
 }
 
-// WithURLQuery sets the URL query parameters for the request.
-func WithURLQuery(query map[string][]any) RequestOption {
+// WithRequestURLQuery sets the URL query parameters for the request.
+func WithRequestURLQuery(query map[string][]any) RequestOption {
 	return func(request *Request) error {
 		url := request.URL.Query()
 		for key, values := range query {
@@ -192,8 +192,8 @@ func WithURLQuery(query map[string][]any) RequestOption {
 	}
 }
 
-// WithBody sets the request body.
-func WithBody(body io.Reader) RequestOption {
+// WithRequestBody sets the request body.
+func WithRequestBody(body io.Reader) RequestOption {
 	return func(request *Request) error {
 		buffer := &bytes.Buffer{}
 		size, err := io.Copy(buffer, body)
@@ -207,15 +207,15 @@ func WithBody(body io.Reader) RequestOption {
 	}
 }
 
-// WithBodyXML XML serializes the object and sets the request body as XML.
-func WithBodyXML(object any) RequestOption {
+// WithRequestXML XML serializes the object and sets the request body as XML.
+func WithRequestXML(object any) RequestOption {
 	return func(request *Request) error {
 		body, err := xml.MarshalIndent(object, "", "  ")
 		if err != nil {
 			return err
 		}
 
-		if err = WithBody(bytes.NewReader(body))(request); err != nil {
+		if err = WithRequestBody(bytes.NewReader(body))(request); err != nil {
 			return err
 		}
 
@@ -224,15 +224,15 @@ func WithBodyXML(object any) RequestOption {
 	}
 }
 
-// WithBodyJSON JSON serializes the object and sets the request body as JSON.
-func WithBodyJSON(object any) RequestOption {
+// WithRequestJSON JSON serializes the object and sets the request body as JSON.
+func WithRequestJSON(object any) RequestOption {
 	return func(request *Request) error {
 		body, err := json.Marshal(object)
 		if err != nil {
 			return err
 		}
 
-		if err = WithBody(bytes.NewReader(body))(request); err != nil {
+		if err = WithRequestBody(bytes.NewReader(body))(request); err != nil {
 			return err
 		}
 
@@ -241,8 +241,8 @@ func WithBodyJSON(object any) RequestOption {
 	}
 }
 
-// WithBodyFormURLEncoded sets the request body as form-urlencoded.
-func WithBodyFormURLEncoded(form map[string][]string) RequestOption {
+// WithRequestFormURLEncoded sets the request body as form-urlencoded.
+func WithRequestFormURLEncoded(form map[string][]string) RequestOption {
 	return func(request *Request) error {
 		formValues := url.Values{}
 		for key, values := range form {
@@ -251,7 +251,7 @@ func WithBodyFormURLEncoded(form map[string][]string) RequestOption {
 			}
 		}
 
-		if err := WithBody(strings.NewReader(formValues.Encode()))(request); err != nil {
+		if err := WithRequestBody(strings.NewReader(formValues.Encode()))(request); err != nil {
 			return err
 		}
 
@@ -260,9 +260,9 @@ func WithBodyFormURLEncoded(form map[string][]string) RequestOption {
 	}
 }
 
-// WithBodyFormData writes the content to body using the multipart
+// WithRequestFormData writes the content to body using the multipart
 // writer.
-func WithBodyFormData(form map[string][]byte) RequestOption {
+func WithRequestFormData(form map[string][]byte) RequestOption {
 	return func(request *Request) error {
 		body := bytes.Buffer{}
 		mWriter := multipart.NewWriter(&body)
@@ -278,7 +278,7 @@ func WithBodyFormData(form map[string][]byte) RequestOption {
 		}
 
 		mWriter.Close()
-		if err := WithBody(&body)(request); err != nil {
+		if err := WithRequestBody(&body)(request); err != nil {
 			return err
 		}
 
@@ -287,9 +287,9 @@ func WithBodyFormData(form map[string][]byte) RequestOption {
 	}
 }
 
-// WithBodyFormDataFile reads the given files and writes it as multipart form.
+// WithRequestFormDataFile reads the given files and writes it as multipart form.
 // the functional options allows you to mutate the file content before it's being written.
-func WithBodyFormDataFile(filePath, field string, opts ...func(content []byte) []byte) RequestOption {
+func WithRequestFormDataFile(filePath, field string, opts ...func(content []byte) []byte) RequestOption {
 	return func(request *Request) (err error) {
 		content, err := os.ReadFile(filePath)
 		if err != nil {
@@ -300,15 +300,15 @@ func WithBodyFormDataFile(filePath, field string, opts ...func(content []byte) [
 			content = opt(content)
 		}
 
-		return WithBodyFormData(map[string][]byte{
+		return WithRequestFormData(map[string][]byte{
 			field: content,
 		})(request)
 	}
 }
 
-// WithAuthorizationBasic encodes the credentials with basic HTTP authentication.
+// WithRequestAuthorizationBasic encodes the credentials with basic HTTP authentication.
 // It sets the valkue in the Authorization HTTP header.
-func WithAuthorizationBasic(username, password string) RequestOption {
+func WithRequestAuthorizationBasic(username, password string) RequestOption {
 	return func(request *Request) error {
 		auth := fmt.Sprintf("%s:%s", username, password)
 		cred := fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(auth)))
@@ -317,9 +317,9 @@ func WithAuthorizationBasic(username, password string) RequestOption {
 	}
 }
 
-// WithAuthorizationBearer executes the callback to fetch a token, the token from
+// WithRequestAuthorizationBearer executes the callback to fetch a token, the token from
 // the result will be set in the Authorization header
-func WithAuthorizationBearer(fn func(ctx context.Context) (string, error)) RequestOption {
+func WithRequestAuthorizationBearer(fn func(ctx context.Context) (string, error)) RequestOption {
 	return func(request *Request) error {
 		token, err := fn(request.Context())
 		if err != nil {
@@ -331,8 +331,8 @@ func WithAuthorizationBearer(fn func(ctx context.Context) (string, error)) Reque
 	}
 }
 
-// WithHeader sets key value as HTTP header in the request.
-func WithHeader(key string, value any) RequestOption {
+// WithRequestHeader sets key value as HTTP header in the request.
+func WithRequestHeader(key string, value any) RequestOption {
 	return func(request *Request) error {
 		request.Header.Add(key, fmt.Sprint(value))
 		return nil

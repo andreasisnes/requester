@@ -26,15 +26,15 @@ func TestDo(t *testing.T) {
 	})
 }
 
-func TestWithRetryPolicy(t *testing.T) {
+func TestWithRequestRetryPolicy(t *testing.T) {
 	t.Run("exponential fallback", func(t *testing.T) {
 		var err error
 		elapsed := Elapsed(func() {
 			err = New().
 				GET(context.Background(), "http://www.google.com:81").
 				Do(
-					WithTimeout(time.Millisecond),
-					WithRetryPolicy(3, time.Millisecond, FallbackPolicyExponential),
+					WithRequestTimeout(time.Millisecond),
+					WithRequestRetryPolicy(3, time.Millisecond, FallbackPolicyExponential),
 				).Handle()
 		})
 
@@ -53,8 +53,8 @@ func TestWithRetryPolicy(t *testing.T) {
 			err = New().
 				GET(context.Background(), "http://www.google.com:81").
 				Do(
-					WithTimeout(time.Millisecond),
-					WithRetryPolicy(3, time.Millisecond, FallbackPolicyLinear),
+					WithRequestTimeout(time.Millisecond),
+					WithRequestRetryPolicy(3, time.Millisecond, FallbackPolicyLinear),
 				).Handle()
 		})
 
@@ -68,13 +68,13 @@ func TestWithRetryPolicy(t *testing.T) {
 	})
 }
 
-func TestWithTimeout(t *testing.T) {
+func TestWithRequestTimeout(t *testing.T) {
 	t.Run("times out after given duration", func(t *testing.T) {
 		var err error
 		elapsed := Elapsed(func() {
 			err = New().
 				GET(context.Background(), "http://www.google.com:81").
-				Do(WithTimeout(time.Millisecond * 100)).Err
+				Do(WithRequestTimeout(time.Millisecond * 100)).Err
 		})
 
 		assert.Less(t, time.Millisecond*100, elapsed)
@@ -82,22 +82,22 @@ func TestWithTimeout(t *testing.T) {
 	})
 }
 
-func TestWithURL(t *testing.T) {
+func TestWithRequestURL(t *testing.T) {
 	t.Run("URL being set in request", func(t *testing.T) {
 		request := New().
 			GET(context.Background(), testURL)
-		err := request.Dry(WithURL("https://test.no"))
+		err := request.Dry(WithRequestURL("https://test.no"))
 
 		assert.NoError(t, err)
 		assert.Equal(t, "https://test.no", request.URL.String())
 	})
 }
 
-func TestWithURLQuery(t *testing.T) {
+func TestWithRequestURLQuery(t *testing.T) {
 	t.Run("query being set in the URL", func(t *testing.T) {
 		request := New().
 			GET(context.Background(), testURL)
-		err := request.Dry(WithURLQuery(map[string][]any{
+		err := request.Dry(WithRequestURLQuery(map[string][]any{
 			"id": {"123", 321},
 		}))
 
@@ -106,11 +106,11 @@ func TestWithURLQuery(t *testing.T) {
 	})
 }
 
-func TestWithBody(t *testing.T) {
+func TestWithRequestBody(t *testing.T) {
 	t.Run("body being set", func(t *testing.T) {
 		request := New().
 			GET(context.Background(), testURL)
-		err := request.Dry(WithBody(strings.NewReader("123")))
+		err := request.Dry(WithRequestBody(strings.NewReader("123")))
 
 		assert.NoError(t, err)
 		body, err := io.ReadAll(request.Body)
@@ -119,7 +119,7 @@ func TestWithBody(t *testing.T) {
 	})
 }
 
-func TestWithBodyXML(t *testing.T) {
+func TestWithRequestXML(t *testing.T) {
 	type TestXML struct {
 		XMLName xml.Name `xml:"test"`
 		Id      int      `xml:"id,attr"`
@@ -131,7 +131,7 @@ func TestWithBodyXML(t *testing.T) {
 		request := New().
 			POST(context.Background(), testURL)
 
-		err := request.Dry(WithBodyXML(&TestXML{
+		err := request.Dry(WithRequestXML(&TestXML{
 			Name: "github",
 		}))
 
@@ -150,7 +150,7 @@ func TestWithBodyXML(t *testing.T) {
 
 }
 
-func TestWithBodyJSON(t *testing.T) {
+func TestWithRequestJSON(t *testing.T) {
 	type TestJSON struct {
 		Id int `json:"id"`
 	}
@@ -159,7 +159,7 @@ func TestWithBodyJSON(t *testing.T) {
 		request := New().
 			POST(context.Background(), testURL)
 
-		err := request.Dry(WithBodyJSON(&TestJSON{
+		err := request.Dry(WithRequestJSON(&TestJSON{
 			Id: 123,
 		}))
 
@@ -177,12 +177,12 @@ func TestWithBodyJSON(t *testing.T) {
 	})
 }
 
-func TestWithBodyFormURLEncoded(t *testing.T) {
+func TestWithRequestFormURLEncoded(t *testing.T) {
 	t.Run("map being url encoded and set in body", func(t *testing.T) {
 		request := New().
 			POST(context.Background(), testURL)
 
-		err := request.Dry(WithBodyFormURLEncoded(map[string][]string{
+		err := request.Dry(WithRequestFormURLEncoded(map[string][]string{
 			"test": {"1", "3"},
 		}))
 
@@ -194,12 +194,12 @@ func TestWithBodyFormURLEncoded(t *testing.T) {
 	})
 }
 
-func TestWithBodyFormData(t *testing.T) {
+func TestWithRequestFormData(t *testing.T) {
 	t.Run("map being form data encoded and set in body", func(t *testing.T) {
 		request := New().
 			POST(context.Background(), testURL)
 
-		err := request.Dry(WithBodyFormData(map[string][]byte{
+		err := request.Dry(WithRequestFormData(map[string][]byte{
 			"test": []byte("123"),
 		}))
 
@@ -215,20 +215,20 @@ func TestWithBodyFormData(t *testing.T) {
 	})
 }
 
-func TestWithAuthorizationBasic(t *testing.T) {
+func TestWithRequestAuthorizationBasic(t *testing.T) {
 	t.Run("credentials being base64 encoded and set in header", func(t *testing.T) {
 		request := New().POST(context.Background(), testURL)
-		err := request.Dry(WithAuthorizationBasic("123", "321"))
+		err := request.Dry(WithRequestAuthorizationBasic("123", "321"))
 
 		assert.NoError(t, err)
 		assert.Equal(t, "Basic MTIzOjMyMQ==", request.Header.Get("Authorization"))
 	})
 }
 
-func TestWithAuthorizationBearer(t *testing.T) {
+func TestWithRequestAuthorizationBearer(t *testing.T) {
 	t.Run("value from callback is set in header", func(t *testing.T) {
 		request := New().POST(context.Background(), testURL)
-		err := request.Dry(WithAuthorizationBearer(func(ctx context.Context) (string, error) {
+		err := request.Dry(WithRequestAuthorizationBearer(func(ctx context.Context) (string, error) {
 			return "123", nil
 		}))
 
@@ -237,10 +237,10 @@ func TestWithAuthorizationBearer(t *testing.T) {
 	})
 }
 
-func TestWithHeader(t *testing.T) {
+func TestWithRequestHeader(t *testing.T) {
 	t.Run("header is being set", func(t *testing.T) {
 		request := New().POST(context.Background(), testURL)
-		err := request.Dry(WithHeader("X-TEST", 1))
+		err := request.Dry(WithRequestHeader("X-TEST", 1))
 
 		assert.NoError(t, err)
 		assert.Equal(t, "1", request.Header.Get("X-TEST"))
