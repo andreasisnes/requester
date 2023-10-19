@@ -18,7 +18,7 @@ Many projects and libraries in the Go ecosystem follow the builder pattern, whic
 In contrast, the functional pattern offers a flexible and composable approach to working with HTTP requests. This pattern aligns well with Go's idiomatic style, allowing developers to easily apply modifications and customizations to requests through functional options.
 
 ## Components
-This package extends the functionality of the standard http package by incorporating and enhancing its core components: the Client, Request, and Response objects. It introduces additional fields, methods, and object compositions, augmenting the capabilities provided by the standard HTTP package.
+This package extends the functionality of the standard http package by incorporating and enhancing its core components: the Client, Request, and Response objects. It introduces additional fields, methods, and object compositions of the standard http package, augmenting the capabilities provided by the standard HTTP package with some extra stuff.
 
 Errors are propagated through the client initialization, request construction, sending, and handling. If any errors occur along this process, subsequent steps will not execute the provided callbacks. Therefore you omit checking the errors for each stage. See the usage section below.
 
