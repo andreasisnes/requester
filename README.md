@@ -1,7 +1,7 @@
 <div align="center">
 
 [![Pipeline](https://github.com/andreasisnes/requester/actions/workflows/pipeline.yml/badge.svg)](https://github.com/andreasisnes/requester/actions/workflows/pipeline.yml)
-![coverage](https://raw.githubusercontent.com/andreasisnes/requester/badges/.badges/coverage.svg)
+![coverage](https://raw.githubusercontent.com/andreasisnes/requester/badges/.badges/main/coverage.svg)
 ![GitHub](https://img.shields.io/github/license/andreasisnes/requester)
 [![Go Report Card](https://goreportcard.com/badge/github.com/andreasisnes/requester)](https://goreportcard.com/report/github.com/andreasisnes/requester)
 [![GoDoc](https://godoc.org/github.com/andreasisnes/requester?status.svg)](https://godoc.org/github.com/andreasisnes/requester)
@@ -54,7 +54,7 @@ type EchoServer struct {
 }
 
 func main() {
-	sdk := &EchoServer{
+	echo := &EchoServer{
 		client: requester.New(
 			requester.WithBaseURL("https://postman-echo.com"),
 		),
@@ -62,12 +62,12 @@ func main() {
 
 	ctx := context.Background()
 
-	response, _ := sdk.GET(ctx, map[string][]any{
+	response, _ := echo.GET(ctx, map[string][]any{
 		"timstamp": {time.Now()},
 	})
 	PrintJSON(response)
 
-	response, _ = sdk.POST(ctx, map[string]any{
+	response, _ = echo.POST(ctx, map[string]any{
 		"test": 123,
 	})
 	PrintJSON(response)
@@ -76,6 +76,20 @@ func main() {
 func PrintJSON(response Response) {
 	jsonBytes, _ := json.MarshalIndent(response, "", "  ")
 	fmt.Println(string(jsonBytes))
+}
+
+func (sdk *EchoServer) GET(ctx context.Context, query map[string][]any) (out Response, err error) {
+	return out, sdk.client.GET(ctx, "get").
+		Do(
+			requester.WithRequestURLQuery(query),
+			func(request *requester.Request) (err error) {
+				request.Header.Add("X-Header", "1337")
+				return nil
+			},
+		).
+		Handle(
+			requester.WithResponseJSON(&out),
+		)
 }
 
 func (sdk *EchoServer) POST(ctx context.Context, payload map[string]any) (out Response, err error) {
@@ -90,15 +104,6 @@ func (sdk *EchoServer) POST(ctx context.Context, payload map[string]any) (out Re
 		)
 }
 
-func (sdk *EchoServer) GET(ctx context.Context, query map[string][]any) (out Response, err error) {
-	return out, sdk.client.GET(ctx, "get").
-		Do(
-			requester.WithRequestURLQuery(query),
-		).
-		Handle(
-			requester.WithResponseJSON(&out),
-		)
-}
 ```
 
 
@@ -106,18 +111,19 @@ The first request GET will write following to stdout.
 ```json
 {
   "args": {
-    "timstamp": "2023-10-19 13:05:34.994444724 +0200 CEST m=+0.000163639"
+    "timstamp": "2023-10-19 16:50:11.736282963 +0200 CEST m=+0.000161264"
   },
   "data": null,
   "headers": {
     "accept-encoding": "gzip",
     "host": "postman-echo.com",
     "user-agent": "Go-http-client/2.0",
-    "x-amzn-trace-id": "Root=1-65310d53-0db6144a5175aea0772afad7",
+    "x-amzn-trace-id": "Root=1-653141f8-67a5c67e22ed992303fe50f4",
     "x-forwarded-port": "443",
-    "x-forwarded-proto": "https"
+    "x-forwarded-proto": "https",
+    "x-header": "1337"
   },
-  "url": "https://postman-echo.com/get?timstamp=2023-10-19+13%3A05%3A34.994444724+%2B0200+CEST+m%3D%2B0.000163639"
+  "url": "https://postman-echo.com/get?timstamp=2023-10-19+16%3A50%3A11.736282963+%2B0200+CEST+m%3D%2B0.000161264"
 }
 ```
 
