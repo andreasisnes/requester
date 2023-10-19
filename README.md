@@ -145,5 +145,5 @@ The second request POST will write the following to stdout.
 ```
 
 # Contributing
-If you want to contribute to requestor, feel free to open an [issue](https://github.com/andreasisnes/requester/issues) or submit a [pull request](https://github.com/andreasisnes/requester/pulls).
+If you want to contribute, you are welcome to open an [issue](https://github.com/andreasisnes/requester/issues) or submit a [pull request](https://github.com/andreasisnes/requester/pulls).
 
