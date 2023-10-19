@@ -1,6 +1,6 @@
 <div align="center">
 
-[![.github/workflows/ci.yml](https://github.com/andreasisnes/requester/actions/workflows/ci.yml/badge.svg)](https://github.com/andreasisnes/requester/actions/workflows/ci.yml)
+[![Pipeline](https://github.com/andreasisnes/requester/actions/workflows/pipeline.yml/badge.svg)](https://github.com/andreasisnes/requester/actions/workflows/pipeline.yml)
 ![coverage](https://raw.githubusercontent.com/andreasisnes/requester/badges/.badges/coverage.svg)
 ![GitHub](https://img.shields.io/github/license/andreasisnes/requester)
 [![Go Report Card](https://goreportcard.com/badge/github.com/andreasisnes/requester)](https://goreportcard.com/report/github.com/andreasisnes/requester)
@@ -25,17 +25,115 @@ go get github.com/andreasisnes/requester
 ## Usage
 
 ```go
+package main
+
 import (
-    "github.com/andreasisnes/requester"
-    "net/http"
-) 
+	"context"
+	"encoding/json"
+	"fmt"
+	"time"
 
-// Create a new client with default options
-client := requester.New()
-
-// Modify client options
-clientWithOptions := requester.New(
-    requester.WithBaseURL("https://api.example.com"),
-    requester.WithClient(&http.Client{}),
+	"github.com/andreasisnes/requester"
 )
+
+type Response struct {
+	Args    map[string]string `json:"args"`
+	Data    map[string]any    `json:"data"`
+	Headers map[string]string `json:"headers"`
+	URL     string            `json:"url"`
+}
+
+type EchoServer struct {
+	client *requester.Client
+}
+
+func main() {
+	sdk := &EchoServer{
+		client: requester.New(
+			requester.WithBaseURL("https://postman-echo.com"),
+		),
+	}
+
+	ctx := context.Background()
+
+	response, _ := sdk.GET(ctx, map[string][]any{
+		"timstamp": {time.Now()},
+	})
+	PrintJSON(response)
+
+	response, _ = sdk.POST(ctx, map[string]any{
+		"test": 123,
+	})
+	PrintJSON(response)
+}
+
+func PrintJSON(response Response) {
+	jsonBytes, _ := json.MarshalIndent(response, "", "  ")
+	fmt.Println(string(jsonBytes))
+}
+
+func (sdk *EchoServer) POST(ctx context.Context, payload map[string]any) (out Response, err error) {
+	return out, sdk.client.POST(ctx, "post").
+		Do(
+			requester.WithRequestJSON(payload),
+			requester.WithRequestHeader("X-Custom", 123),
+			requester.WithRequestAuthorizationBasic("admin", "password"),
+		).
+		Handle(
+			requester.WithResponseJSON(&out),
+		)
+}
+
+func (sdk *EchoServer) GET(ctx context.Context, query map[string][]any) (out Response, err error) {
+	return out, sdk.client.GET(ctx, "get").
+		Do(
+			requester.WithRequestURLQuery(query),
+		).
+		Handle(
+			requester.WithResponseJSON(&out),
+		)
+}
+```
+
+
+The first request GET will write following to stdout.
+```json
+{
+  "args": {
+    "timstamp": "2023-10-19 13:05:34.994444724 +0200 CEST m=+0.000163639"
+  },
+  "data": null,
+  "headers": {
+    "accept-encoding": "gzip",
+    "host": "postman-echo.com",
+    "user-agent": "Go-http-client/2.0",
+    "x-amzn-trace-id": "Root=1-65310d53-0db6144a5175aea0772afad7",
+    "x-forwarded-port": "443",
+    "x-forwarded-proto": "https"
+  },
+  "url": "https://postman-echo.com/get?timstamp=2023-10-19+13%3A05%3A34.994444724+%2B0200+CEST+m%3D%2B0.000163639"
+}
+```
+
+The second request POST will write the following to stdout.
+```json
+{
+  "args": {},
+  "data": {
+    "test": 123
+  },
+  "headers": {
+    "accept-encoding": "gzip",
+    "authorization": "Basic YWRtaW46cGFzc3dvcmQ=",
+    "content-length": "12",
+    "content-type": "application/json",
+    "host": "postman-echo.com",
+    "user-agent": "Go-http-client/2.0",
+    "x-amzn-trace-id": "Root=1-65310d53-14c9787b400c18fc69ec0f40",
+    "x-custom": "123",
+    "x-forwarded-port": "443",
+    "x-forwarded-proto": "https"
+  },
+  "url": "https://postman-echo.com/post"
+}
 ```

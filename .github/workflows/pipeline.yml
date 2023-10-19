@@ -4,7 +4,7 @@ on:
       - main
   pull_request:
 
-name: "Pipeline"
+name: Pipeline
 
 env:
   GO_VERSION: 1.21
